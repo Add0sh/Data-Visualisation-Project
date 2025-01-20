@@ -111,16 +111,16 @@ filtered_data <- bind_rows(indie_data, soul_data, gospel_data, trance_data, hiph
 # Create the boxplot
 ggplot(filtered_data, aes(x = track_genre, y = valence, fill = track_genre)) +
   geom_boxplot(outlier.color = "red", outlier.shape = 16, outlier.size = 2) +
-  scale_fill_brewer(palette = "Set3") + # Use a color palette suitable for multiple categories
+  scale_fill_brewer(palette = "Set3") + # Using a color palette suitable for multiple categories
   labs(
     title = "Valence Distribution Across Selected Genres",
     x = "Genre",
     y = "Valence",
     fill = "Genre"
   ) +
-  theme_minimal() + # Apply a clean, minimalistic theme
+  theme_minimal() + # Applying a clean, minimalistic theme
   theme(
-    text = element_text(size = 14), # Adjust text size for readability
+    text = element_text(size = 14), # Adjusting text size for readability
     axis.text.x = element_text(angle = 45, hjust = 1) # Rotate x-axis labels for better clarity
   )
 
