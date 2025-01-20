@@ -1,0 +1,126 @@
+library(fmsb)
+library(tidyverse)
+library(reshape2)
+library(dplyr)
+library(wordcloud2)
+library(tidytext)
+library(stopwords)
+library(RColorBrewer)
+
+# Import and view 
+spotify_data <- read.csv("/Users/add0sh/Documents/R practicals/Spotify - Coursework/Explore/Test/dataset.csv")
+
+spotify_data <- subset(spotify_data, select = -X)
+
+# Normalisation function
+minMax <- function(x) {
+  (x - min(x)) / (max(x) - min(x))
+}
+
+# Applying normalisation to each column
+normalised <- lapply(cleaned_data, minMax) %>% as.data.frame()
+
+#### Histogram comparing Valence distribution between Pop & Blues
+
+pop_data <- spotify_data %>% 
+  filter(track_genre == "pop")
+
+blues_data <- spotify_data %>% 
+  filter(track_genre == "blues")
+
+ggplot() +
+  geom_histogram(data = blues_data, aes(x = valence, fill = "Blues"), 
+                 binwidth = 0.05, color = "black", alpha = 0.8) +  
+  geom_histogram(data = pop_data, aes(x = valence, fill = "Pop"), 
+                 binwidth = 0.05, color = "black", alpha = 0.6) +  
+  labs(
+    title = "Histogram of Valence: Blues vs Pop",
+    x = "Valence",
+    y = "Frequency",
+    fill = "Genre"  # Legend title
+  ) +
+  scale_fill_manual(
+    values = c("Blues" = "steelblue", "Pop" = "coral")  # Custom colors
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title = element_text(size = 12)
+  )
+
+#### Density Plot comparing Valence of Goth & Detroit Techno
+
+acoustic_data <- spotify_data %>% 
+  filter(track_genre == "acoustic")
+
+detroit_techno_data <- spotify_data %>% 
+  filter(track_genre == "detroit_techno")
+
+combined_data <- bind_rows(detroit_techno_data, acoustic_data)
+
+# Create the density plot
+ggplot(combined_data, aes(x = valence, fill = track_genre)) +
+  geom_density(alpha = 0.5) +  # alpha makes the plot semi-transparent
+  scale_fill_manual(values = c("orange3", "blue4")) +  # Custom colors
+  labs(
+    title = "Density Plot of Valence: Goth vs Detroit Techno",
+    x = "Valence",
+    y = "Density"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title = element_text(size = 12)
+  )
+
+##### Correlation Plot ####
+
+audio_features <- c("danceability", "loudness", "speechiness", "acousticness","instrumentalness", "valence", "key", "liveness", "tempo", "energy")
+
+audio_features_corr <- cor(normalised[, audio_features], use = "complete.obs")
+
+corrplot(
+  audio_features_corr,
+  is.corr = TRUE,
+  method = "color",
+  col = colorRampPalette(c("red", "white", "blue"))(200),
+  tl.col = "black",
+  tl.srt = 45,
+  title = "Correlations of audio features on valence",
+  cl.lim = c(-1, 1),
+  mar = c(0, 0, 2, 0)
+)
+
+#### Boxplot test ####
+
+# Subset the data for the specified genres
+
+hiphop_data <- spotify_data %>% 
+  filter(track_genre == "hip-hop")
+trance_data <- spotify_data %>% 
+  filter(track_genre == "trance")
+gospel_data <- spotify_data %>% 
+  filter(track_genre == "gospel")
+soul_data <- spotify_data %>% 
+  filter(track_genre == "soul")
+indie_data <- spotify_data %>% 
+  filter(track_genre == "indie")
+
+filtered_data <- bind_rows(indie_data, soul_data, gospel_data, trance_data, hiphop_data)
+
+# Create the boxplot
+ggplot(filtered_data, aes(x = track_genre, y = valence, fill = track_genre)) +
+  geom_boxplot(outlier.color = "red", outlier.shape = 16, outlier.size = 2) +
+  scale_fill_brewer(palette = "Set3") + # Use a color palette suitable for multiple categories
+  labs(
+    title = "Valence Distribution Across Selected Genres",
+    x = "Genre",
+    y = "Valence",
+    fill = "Genre"
+  ) +
+  theme_minimal() + # Apply a clean, minimalistic theme
+  theme(
+    text = element_text(size = 14), # Adjust text size for readability
+    axis.text.x = element_text(angle = 45, hjust = 1) # Rotate x-axis labels for better clarity
+  )
+
